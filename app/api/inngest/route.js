@@ -1,11 +1,17 @@
+
 import { serve } from "inngest/next";
-import { inngest, snycUserData, updateUserData,syncUserDeletion } from "@/config/inngest";
+import {
+    inngest,
+    syncUserData,
+    syncUserDeletion,
+    updateUserData,
+} from "@/config/inngest";
 
 export const { GET, POST, PUT } = serve({
-  client: inngest,
-  functions: [
-    snycUserData,
-    updateUserData,
-    syncUserDeletion
-  ],
+    client: inngest,
+    functions: [
+        syncUserData,
+        syncUserDeletion,
+        updateUserData,
+    ],
 });

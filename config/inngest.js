@@ -8,12 +8,10 @@ export const inngest = new Inngest({
 });
 
 // Sync user when created
-export const snycUserData = inngest.createFunction(
+export const syncUserData = inngest.createFunction(
     {
         id: "sync-user-from-clerk",
-    },
-    {
-        event: "clerk.user/user.created",
+        triggers: { event: "clerk/user.created" },
     },
     async ({ event }) => {
         const {
@@ -25,7 +23,7 @@ export const snycUserData = inngest.createFunction(
             image_url,
         } = event.data;
 
-        const primaryEmail = email_addresses.find(
+        const primaryEmail = email_addresses?.find(
             (email) => email.id === primary_email_address_id
         );
 
@@ -34,12 +32,13 @@ export const snycUserData = inngest.createFunction(
         await User.findOneAndUpdate(
             { _id: id },
             {
-                _id: id,
-                email: primaryEmail?.email_address,
-                name: `${first_name || ""} ${last_name || ""}`.trim(),
-                imageUrl: image_url,
+                $set: {
+                    name: `${first_name || ""} ${last_name || ""}`.trim(),
+                    email: primaryEmail?.email_address || "",
+                    imageUrl: image_url || "",
+                },
             },
-            { upsert: true, new: true }
+            { upsert: true, new: true, runValidators: true }
         );
     }
 );
@@ -48,9 +47,7 @@ export const snycUserData = inngest.createFunction(
 export const updateUserData = inngest.createFunction(
     {
         id: "update-user-from-clerk",
-    },
-    {
-        event: "clerk.user/user.updated",
+        triggers: { event: "clerk/user.updated" },
     },
     async ({ event }) => {
         const {
@@ -62,7 +59,7 @@ export const updateUserData = inngest.createFunction(
             image_url,
         } = event.data;
 
-        const primaryEmail = email_addresses.find(
+        const primaryEmail = email_addresses?.find(
             (email) => email.id === primary_email_address_id
         );
 
@@ -71,11 +68,13 @@ export const updateUserData = inngest.createFunction(
         await User.findOneAndUpdate(
             { _id: id },
             {
-                email: primaryEmail?.email_address,
-                name: `${first_name || ""} ${last_name || ""}`.trim(),
-                imageUrl: image_url,
+                $set: {
+                    name: `${first_name || ""} ${last_name || ""}`.trim(),
+                    email: primaryEmail?.email_address || "",
+                    imageUrl: image_url || "",
+                },
             },
-            { upsert: true, new: true }
+            { upsert: true, new: true, runValidators: true }
         );
     }
 );
@@ -84,9 +83,7 @@ export const updateUserData = inngest.createFunction(
 export const syncUserDeletion = inngest.createFunction(
     {
         id: "delete-user-from-clerk",
-    },
-    {
-        event: "clerk.user/user.deleted",
+        triggers: { event: "clerk/user.deleted" },
     },
     async ({ event }) => {
         const { id } = event.data;
